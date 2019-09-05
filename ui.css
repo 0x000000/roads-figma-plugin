@@ -1,0 +1,29 @@
+body {
+  font: 14px sans-serif;
+  text-align: center;
+  margin: 20px;
+}
+
+label {
+  font: 12px sans-serif;
+}
+
+input {
+  font: 14px sans-serif;
+  padding: 5px;
+}
+
+.buttons {
+  margin-top: 30px;
+}
+
+button {
+  cursor: pointer;
+  padding: 8px 15px;
+  margin: 0 5px;
+}
+
+#import {
+  background: #18A0FB;
+}
+
