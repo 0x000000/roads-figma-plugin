@@ -169,7 +169,7 @@ function createSlots(slotSize: BuildingSize, absolutePos: Point, rotation: numbe
 }
 
 function detectSectors(block: Block, node: InstanceNode): Sector[] {
-  const offsetX = OFFSET + ((OFFSET + SIZE) * block.position % FIELD_WIDTH);
+  const offsetX = OFFSET + ((OFFSET + SIZE) * (block.position % FIELD_WIDTH));
   const offsetY = OFFSET + ((OFFSET + SIZE) * Math.floor(block.position / FIELD_WIDTH));
 
   return node.children.filter(c => c.name.indexOf("Slot ") === 0).map((child: InstanceNode) => {
