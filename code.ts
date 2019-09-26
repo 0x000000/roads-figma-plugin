@@ -257,15 +257,16 @@ function copyBlock(originalBlock: Block, shape: BlockShape, postfix: string): Bl
 function registerBlock(node: InstanceNode): BlockImport[] {
   const originalBlock = parseName(node.name);
   const originalSectors = detectSectors(originalBlock, node);
-  const mirrorBlock = copyBlock(originalBlock, BlockShape.TriangleBottomRight, "a_mirror");
-  const mirrorSectors = mirror(originalSectors);
-  const thirdQuarterSectors = rotate(originalSectors, Angle.thirdQuarter, {x: SIZE, y: 0});
-  const thirdQuarterSectorsMirrored = rotate(mirrorSectors, Angle.thirdQuarter, {x: SIZE, y: 0});
 
   const isSquare = originalBlock.shape === BlockShape.Square;
   const shapes = isSquare ?
     [BlockShape.Square, BlockShape.Square, BlockShape.Square] :
     [BlockShape.TriangleBottomLeft, BlockShape.TriangleTopLeft, BlockShape.TriangleTopRight];
+
+  const mirrorBlock = copyBlock(originalBlock, isSquare ? BlockShape.Square : BlockShape.TriangleBottomRight, "a_mirror");
+  const mirrorSectors = mirror(originalSectors);
+  const thirdQuarterSectors = rotate(originalSectors, Angle.thirdQuarter, {x: SIZE, y: 0});
+  const thirdQuarterSectorsMirrored = rotate(mirrorSectors, Angle.thirdQuarter, {x: SIZE, y: 0});
 
   return [
     {
@@ -316,12 +317,15 @@ function onImport(message: FMessage) {
     return;
   }
 
+  const blocks: BlockImport[] = [];
+
   frame.children.forEach((child: InstanceNode) => {
     if (child.name.indexOf("T:") === 0 || child.name.indexOf("S:") === 0) {
-      const data = registerBlock(child);
-      console.log(JSON.stringify(data));
+      blocks.push(...registerBlock(child));
     }
   });
+
+  console.log(JSON.stringify(blocks));
 
   onCancel();
 }
