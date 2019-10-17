@@ -50,6 +50,7 @@ interface Point {
 }
 
 interface Slot {
+  id: number;
   absolutePosition: Point;
   relativePosition: Point;
   topLeftPosition: Point;
@@ -57,6 +58,7 @@ interface Slot {
 }
 
 interface Sector {
+  id: number;
   slots: Slot[];
   size: BuildingSize;
 }
@@ -73,13 +75,14 @@ function calcTopLeftPoint(center: Point): Point {
   }
 }
 
-function createSlotTopDown(relativePos: Point, absolutePos: Point): Slot {
+function createSlotTopDown(relativePos: Point, absolutePos: Point, index: number): Slot {
   const absolutePosition = {
     x: absolutePos.x + (SLOT_SIZE / 2) + (SLOT_SIZE * relativePos.x),
     y: absolutePos.y + (SLOT_SIZE / 2) + (SLOT_SIZE * relativePos.y),
   };
 
   return {
+    id: index,
     relativePosition: relativePos,
     absolutePosition: absolutePosition,
     topLeftPosition: calcTopLeftPoint(absolutePosition),
@@ -87,13 +90,14 @@ function createSlotTopDown(relativePos: Point, absolutePos: Point): Slot {
   };
 }
 
-function createSlotDiagonal(relativePos: Point, absolutePos: Point): Slot {
+function createSlotDiagonal(relativePos: Point, absolutePos: Point, index: number): Slot {
   const absolutePosition = {
     x: absolutePos.x + HALF_DIAGONAL + (HALF_DIAGONAL * relativePos.x) + (HALF_DIAGONAL * relativePos.y),
     y: absolutePos.y + (HALF_DIAGONAL * relativePos.y) - (HALF_DIAGONAL * relativePos.x),
   };
 
   return {
+    id: index,
     relativePosition: relativePos,
     absolutePosition: absolutePosition,
     topLeftPosition: calcTopLeftPoint(absolutePosition),
@@ -101,13 +105,14 @@ function createSlotDiagonal(relativePos: Point, absolutePos: Point): Slot {
   };
 }
 
-function createSlotReverseDiagonal(relativePos: Point, absolutePos: Point): Slot {
+function createSlotReverseDiagonal(relativePos: Point, absolutePos: Point, index: number): Slot {
   const absolutePosition = {
     x: absolutePos.x + (HALF_DIAGONAL * relativePos.x) - (HALF_DIAGONAL * relativePos.y),
     y: absolutePos.y + HALF_DIAGONAL + (HALF_DIAGONAL * relativePos.x) + (HALF_DIAGONAL * relativePos.y),
   };
 
   return {
+    id: index,
     relativePosition: relativePos,
     absolutePosition: absolutePosition,
     topLeftPosition: calcTopLeftPoint(absolutePosition),
@@ -121,7 +126,7 @@ function createSlots(slotSize: BuildingSize, absolutePos: Point, rotation: numbe
   let height: number;
   let offsetX: number;
   let offsetY: number;
-  let slotCreator: (relativePos: Point, absolutePos: Point) => Slot;
+  let slotCreator: (relativePos: Point, absolutePos: Point, index: number) => Slot;
 
   switch (rotation) {
     case 0:
@@ -158,10 +163,11 @@ function createSlots(slotSize: BuildingSize, absolutePos: Point, rotation: numbe
 
   }
 
+  let index = 0;
   const slots: Slot[] = [];
   for(let x = 0; x < width; x++) {
     for(let y = 0; y < height; y++) {
-      slots.push(slotCreator({x, y}, {x: absolutePos.x + offsetX, y: absolutePos.y + offsetY}));
+      slots.push(slotCreator({x, y}, {x: absolutePos.x + offsetX, y: absolutePos.y + offsetY}, index++));
     }
   }
 
@@ -172,6 +178,7 @@ function detectSectors(block: Block, node: InstanceNode): Sector[] {
   const offsetX = OFFSET + ((OFFSET + SIZE) * (block.position % FIELD_WIDTH));
   const offsetY = OFFSET + ((OFFSET + SIZE) * Math.floor(block.position / FIELD_WIDTH));
 
+  let index = 0;
   return node.children.filter(c => c.name.indexOf("Slot ") === 0).map((child: InstanceNode) => {
     const slotSize: BuildingSize = child.name.match(/Slot (\w+)/)[1] as BuildingSize;
     const currentPosition = {x: Math.round(child.x - offsetX), y: Math.round(child.y - offsetY)};
@@ -182,6 +189,7 @@ function detectSectors(block: Block, node: InstanceNode): Sector[] {
     }
 
     return {
+      id: index++,
       slots: createSlots(slotSize, currentPosition, rotation),
       size: slotSize,
     };
@@ -205,10 +213,12 @@ function parseName(name: string): Block {
 function mirror(sectors: Sector[]): Sector[] {
   return sectors.map(sector => {
     return {
+      id: sector.id,
       slots: sector.slots.map(slot => {
         const absolutePosition = {x: slot.absolutePosition.y, y: slot.absolutePosition.x};
 
         return {
+          id: slot.id,
           relativePosition: slot.relativePosition,
           absolutePosition: absolutePosition,
           topLeftPosition: calcTopLeftPoint(absolutePosition),
@@ -223,6 +233,7 @@ function mirror(sectors: Sector[]): Sector[] {
 function rotate(sectors: Sector[], angle: number, offset: Point): Sector[] {
   return sectors.map(sector => {
     return {
+      id: sector.id,
       slots: sector.slots.map(slot => {
         const x = slot.absolutePosition.x;
         const y = slot.absolutePosition.y;
@@ -233,6 +244,7 @@ function rotate(sectors: Sector[], angle: number, offset: Point): Sector[] {
         };
 
         return {
+          id: slot.id,
           relativePosition: slot.relativePosition,
           absolutePosition: absolutePosition,
           topLeftPosition: calcTopLeftPoint(absolutePosition),
