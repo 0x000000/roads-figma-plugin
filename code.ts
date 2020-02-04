@@ -17,6 +17,7 @@ const Angle = {
 interface FMessage {
   type: Messages;
   frameName: string;
+  idDiff: number;
 }
 enum Messages {
   Import = "import",
@@ -63,7 +64,8 @@ interface Sector {
   size: BuildingSize;
 }
 
-interface BlockImport {
+interface Layout {
+  id: number;
   block: Block;
   sectors?: Sector[];
 }
@@ -266,7 +268,7 @@ function copyBlock(originalBlock: Block, shape: BlockShape, postfix: string): Bl
   };
 }
 
-function registerBlock(node: InstanceNode): BlockImport[] {
+function registerBlock(node: InstanceNode): Layout[] {
   const originalBlock = parseName(node.name);
   const originalSectors = detectSectors(originalBlock, node);
 
@@ -282,37 +284,42 @@ function registerBlock(node: InstanceNode): BlockImport[] {
 
   return [
     {
+      id: LAYOUT_ID++,
       block: originalBlock,
       sectors: originalSectors,
     },
     {
+      id: LAYOUT_ID++,
       block: mirrorBlock,
       sectors: mirrorSectors,
     },
-
     {
+      id: LAYOUT_ID++,
       block: copyBlock(originalBlock, shapes[0], "b"),
       sectors: thirdQuarterSectors,
     },
     {
+      id: LAYOUT_ID++,
       block: copyBlock(mirrorBlock, shapes[0], "b_mirror"),
       sectors: thirdQuarterSectorsMirrored,
     },
-
     {
+      id: LAYOUT_ID++,
       block: copyBlock(originalBlock, shapes[1], "c"),
       sectors: rotate(thirdQuarterSectors, Angle.secondQuarter, {x: SIZE, y: 0}),
     },
     {
+      id: LAYOUT_ID++,
       block: copyBlock(mirrorBlock, shapes[1], "c_mirror"),
       sectors: rotate(thirdQuarterSectorsMirrored, Angle.secondQuarter, {x: SIZE, y: 0}),
     },
-
     {
+      id: LAYOUT_ID++,
       block: copyBlock(originalBlock, shapes[2], "d"),
       sectors: rotate(originalSectors, Angle.firstQuarter, {x: 0, y: SIZE}),
     },
     {
+      id: LAYOUT_ID++,
       block: copyBlock(mirrorBlock, shapes[2], "d_mirror"),
       sectors: rotate(mirrorSectors, Angle.firstQuarter, {x: 0, y: SIZE}),
     },
@@ -323,13 +330,17 @@ function onCancel() {
   figma.closePlugin();
 }
 
+const ARTBOARD_ID_COUNT = 10 * 6 * 8;
+let LAYOUT_ID;
+
 function onImport(message: FMessage) {
   const frame = figma.currentPage.findOne(node => node.name === message.frameName) as FrameNode;
   if (frame === null) {
     return;
   }
 
-  const blocks: BlockImport[] = [];
+  const blocks: Layout[] = [];
+  LAYOUT_ID = ARTBOARD_ID_COUNT * message.idDiff;
 
   frame.children.forEach((child: InstanceNode) => {
     if (child.name.indexOf("T:") === 0 || child.name.indexOf("S:") === 0) {

@@ -6,6 +6,7 @@ body {
 
 label {
   font: 12px sans-serif;
+  display: inline-block;
 }
 
 input {
