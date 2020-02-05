@@ -24,10 +24,31 @@ enum Messages {
   Cancel = "cancel",
 }
 
-type BlockType = "Res" | "Com" | "Ind" | "Nat" | "Wat";
 type Density = "Low" | "High";
 type BuildingSize = "1x1" | "1x2" | "2x2" | "2x3" | "3x3" | "2x4" | "3x4" | "4x4";
 type Rotation = 0 | 45;
+
+enum BlockType {
+  Residential = 1,
+  Commercial = 2,
+  Industrial = 3,
+  Forest = 4,
+  Park = 5,
+  Agricultural = 6,
+  Water = 7,
+  Wasteland = 8,
+}
+
+const NameToBlockType = {
+  Res: BlockType.Residential,
+  Com: BlockType.Commercial,
+  Ind: BlockType.Industrial,
+  For: BlockType.Forest,
+  Par: BlockType.Park,
+  Agr: BlockType.Agricultural,
+  Wat: BlockType.Water,
+  Was: BlockType.Wasteland,
+};
 
 enum BlockShape {
   Square = 1,
@@ -205,7 +226,7 @@ function parseName(name: string): Block {
 
   return {
     shape: results[1] === "T" ? BlockShape.TriangleBottomRight : BlockShape.Square,
-    type: results[2] as BlockType,
+    type: NameToBlockType[results[2]],
     density: results[3] as Density,
     position: position,
     postfix: "a",
